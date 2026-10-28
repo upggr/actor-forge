@@ -16,7 +16,7 @@ export function scaffold(p: Platform, slug: string, topic: string, query: string
 function apifyActor(slug: string, topic: string, query: string): Record<string, string> {
   return {
     "package.json": JSON.stringify(
-      { name: slug, version: "0.1.0", type: "module", private: true, scripts: { test: "node --test" } },
+      { name: slug, version: "0.1.0", type: "module", private: true, scripts: { start: "node src/main.mjs", test: "node --test" }, dependencies: { apify: "^3.2.0" } },
       null,
       2,
     ),
@@ -28,7 +28,6 @@ function apifyActor(slug: string, topic: string, query: string): Record<string, 
         version: "0.1",
         dockerfile: "../Dockerfile",
         input: "./input_schema.json",
-        storages: { dataset: { actorSpecification: 1, views: {} } },
       },
       null,
       2,

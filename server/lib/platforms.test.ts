@@ -18,8 +18,9 @@ describe("platform manifests", () => {
     for (const p of platforms) expect(p.discover.seeds.length, p.id).toBeGreaterThan(0);
   });
 
-  it("never enable live publishing", () => {
+  it("never enable live publishing by default, and only Apify has a real upload adapter", () => {
     for (const p of platforms) expect(p.publish.liveEnabled, p.id).toBe(false);
+    expect(platforms.filter((p) => p.publish.liveSupported).map((p) => p.id)).toEqual(["apify"]);
   });
 
   it("only send tokens to the host their credential declares", () => {

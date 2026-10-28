@@ -4,7 +4,8 @@ import fs from "node:fs";
 import { z } from "zod";
 
 import { getDb, schema } from "../server/db/index.js";
-import { getBuildOr404, parseJson, requireOwner, safeBuildPath } from "../server/lib/forge.js";
+import { isLive } from "../server/lib/enabled.js";
+import { getBuildOr404, parseJson, platformOr404, requireOwner, safeBuildPath } from "../server/lib/forge.js";
 import { buildDir, listFiles } from "../server/lib/vet.js";
 
 export default defineAction({
@@ -29,7 +30,11 @@ export default defineAction({
       const full = safeBuildPath(id, file);
       fileContent = fs.existsSync(full) ? fs.readFileSync(full, "utf8").slice(0, 60_000) : undefined;
     }
+    const platform = platformOr404(b.platform);
+    const liveSupported = platform.publish.liveSupported;
     return {
+      liveSupported,
+      live: liveSupported ? await isLive(owner, platform.id) : false,
       id: b.id,
       name: b.name,
       platform: b.platform,

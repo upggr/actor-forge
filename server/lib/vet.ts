@@ -182,9 +182,14 @@ export async function vetBuild(p: Platform, id: string) {
     const problems: string[] = [];
     if (sch.ok) {
       if (sch.value.type !== "object") problems.push('type must be "object"');
+      if (sch.value.schemaVersion !== 1) problems.push("schemaVersion must be 1");
       if (!sch.value.properties || !Object.keys(sch.value.properties).length) problems.push("no input properties");
-      for (const [k, v] of Object.entries<any>(sch.value.properties ?? {}))
+      for (const [k, v] of Object.entries<any>(sch.value.properties ?? {})) {
         if (!v.title || !v.description) problems.push(`${k} needs title and description`);
+        if (!v.type) problems.push(`${k} needs a type`);
+        // Learned from a real Apify build: the platform rejects string, array and object fields that have no "editor".
+        if (["string", "array", "object"].includes(v.type) && !v.editor) problems.push(`${k} (${v.type}) needs an "editor", which Apify requires`);
+      }
     }
     add({
       id: "input-schema",

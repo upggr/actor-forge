@@ -69,7 +69,8 @@
   "publish": {
     "type": "apify-push",
     "dryRunCommand": "apify push",
-    "liveEnabled": false
+    "liveEnabled": false,
+    "liveSupported": true
   },
   "pricing": {
     "model": "pay-per-event",

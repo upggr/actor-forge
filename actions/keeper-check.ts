@@ -7,6 +7,10 @@ import { now, parseJson, requireOwner } from "../server/lib/forge.js";
 import { getPlatform } from "../server/lib/platforms.js";
 import { scoutOne } from "../server/lib/scout.js";
 import { listActorHealth } from "../server/lib/apify.js";
+import { resolveSecretDetailed } from "@agent-native/core/server";
+import { isLive } from "../server/lib/enabled.js";
+import { latestBuild } from "../server/lib/live/apify.js";
+import { publishLive } from "../server/lib/publish.js";
 import { vetBuild } from "../server/lib/vet.js";
 
 export default defineAction({
@@ -19,7 +23,7 @@ export default defineAction({
     const rows = await getDb()
       .select()
       .from(b)
-      .where(and(eq(b.ownerEmail, owner), inArray(b.status, ["awaiting_approval", "approved", "published_dry_run"])));
+      .where(and(eq(b.ownerEmail, owner), inArray(b.status, ["awaiting_approval", "approved", "published_dry_run", "published"])));
     const alerts: { buildId: string; name: string; kind: string; detail: string }[] = [];
     for (const row of rows) {
       const platform = getPlatform(row.platform);
@@ -49,6 +53,29 @@ export default defineAction({
         .where(eq(b.id, row.id));
     }
 
+    // Scheduled uploading and maintenance of actors this app built (only where real uploading is switched on).
+    const uploads: { name: string; result: string }[] = [];
+    const token = (await resolveSecretDetailed("APIFY_TOKEN")).value;
+    for (const row of rows) {
+      const platform = getPlatform(row.platform);
+      if (!platform?.publish.liveSupported || !(await isLive(owner, platform.id))) continue;
+      if (row.status === "approved") {
+        try {
+          await publishLive(owner, row, platform);
+          uploads.push({ name: row.name, result: "uploaded as a private actor and built" });
+        } catch (e) {
+          alerts.push({ buildId: row.id, name: row.name, kind: "upload-failed", detail: e instanceof Error ? e.message.slice(0, 220) : "Upload failed" });
+        }
+      } else if (row.status === "published" && token) {
+        const actorId = parseJson<{ uploaded?: { actorId?: string } }>(row.publishResult)?.uploaded?.actorId;
+        if (!actorId) continue;
+        try {
+          const lb = await latestBuild(token, actorId);
+          if (lb && lb.status !== "SUCCEEDED") alerts.push({ buildId: row.id, name: row.name, kind: "actor-build-failing", detail: `The latest Apify build is ${lb.status}.` });
+        } catch { /* a transient API error should not raise a false alert */ }
+      }
+    }
+
     // Live actors: only when the user has connected Apify. A missing or rejected token is reported, never hidden.
     let portfolio: { checked: number } | { skipped: string } = { skipped: "not connected" };
     try {
@@ -59,6 +86,6 @@ export default defineAction({
     } catch (e) {
       portfolio = { skipped: e instanceof Error ? e.message : "unavailable" };
     }
-    return { checked: rows.length, portfolio, alerts, ranAt: now() };
+    return { checked: rows.length, uploads, portfolio, alerts, ranAt: now() };
   },
 });

@@ -1,9 +1,20 @@
 import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
 import { useSetPageTitle } from "@agent-native/toolkit/app-shell";
 import { IconCircleCheck, IconMessagePlus, IconPlug } from "@tabler/icons-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -100,8 +111,32 @@ export default function PluginsPage() {
     onError: (e) => toastError(e, "Could not change the platform"),
   });
 
+  const [confirmLive, setConfirmLive] = useState<any | null>(null);
+  const liveM = useActionMutation("set-platform-live", {
+    onSuccess: (r: any) => {
+      refresh();
+      toast.success(`${r.name}: real uploading ${r.live ? "on" : "off"}`);
+    },
+    onError: (e) => toastError(e, "Could not change real uploading"),
+  });
+
   return (
     <div className="h-full overflow-auto p-3 sm:p-4">
+      <AlertDialog open={confirmLive !== null} onOpenChange={(o) => !o && setConfirmLive(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upload approved builds for real?</AlertDialogTitle>
+            <AlertDialogDescription>
+              When you approve a build, it is uploaded to your {confirmLive?.name} account as a <b>private</b> actor and built there. It is never made public
+              automatically, and you can switch this off at any time. The agent cannot change this setting.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep dry runs</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { liveM.mutate({ platform: confirmLive.id, live: true }); setConfirmLive(null); }}>Turn on</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="mx-auto flex max-w-2xl flex-col gap-3">
         {proposals.length ? (
           <ul className="flex flex-col gap-3" aria-label="Proposed platforms">
@@ -147,6 +182,23 @@ export default function PluginsPage() {
                     </div>
                   ))}
                 </dl>
+                {p.liveSupported ? (
+                  <div className="mt-2 flex items-center gap-3 rounded-md border bg-muted/30 p-2.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">Publish for real</div>
+                      <p className="text-xs text-muted-foreground">
+                        After you approve a build it is uploaded to your {p.name} account as a private actor and built there. Never made public automatically.
+                        {p.credentials?.some((c: any) => c.connected === false) ? " Needs your token first." : ""}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={p.live}
+                      onCheckedChange={(on: boolean) => (on ? setConfirmLive(p) : liveM.mutate({ platform: p.id, live: false }))}
+                      disabled={liveM.isPending}
+                      aria-label={`${p.live ? "Turn off" : "Turn on"} real uploading for ${p.name}`}
+                    />
+                  </div>
+                ) : null}
               </li>
             ))}
             {bad.map((b) => (

@@ -77,7 +77,7 @@ export function timeAgo(iso: string | null | undefined) {
 }
 
 /** For waits with no measurable steps: a moving bar plus what is happening, so it never looks stuck. */
-export function WorkingBar({ label, hint }: { label: string; hint?: string }) {
+export function WorkingBar({ label, hint }: { label: string; hint?: string | undefined }) {
   return (
     <div role="status" aria-live="polite" className="w-full">
       <div className="h-1 w-full overflow-hidden rounded-full bg-muted">

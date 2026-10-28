@@ -54,6 +54,12 @@ describe("validateProposal", () => {
     await reject(m, files(), /liveEnabled/);
   });
 
+  it("rejects a proposal that claims a real upload adapter", async () => {
+    const m: any = good();
+    m.publish.liveSupported = true;
+    await reject(m, files(), /liveSupported/);
+  });
+
   it("rejects the built-in kinds, which need code", async () => {
     const m: any = good();
     m.kind = "apify-actor";

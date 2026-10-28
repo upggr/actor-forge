@@ -79,6 +79,17 @@ describe("vetBuild catches real problems", () => {
     expect(b.verdict).toBe("fail");
   });
 
+  it("an Apify input schema field without the editor Apify requires", async () => {
+    const apify = platforms.find((p) => p.id === "apify")!;
+    const r = await vetBuild(apify, make(apify, (f) => {
+      const sch = JSON.parse(f[".actor/input_schema.json"]!);
+      sch.properties.feedUrl = { title: "Feed URL", type: "string", description: "The feed to read." };
+      f[".actor/input_schema.json"] = JSON.stringify(sch);
+    }));
+    expect(failing(r)).toContain("input-schema");
+    expect(r.checks.find((c: any) => c.id === "input-schema")!.detail).toMatch(/needs an "editor"/);
+  });
+
   it("a mcpName that does not match server.json", async () => {
     const r = await vetBuild(mcp, make(mcp, (f) => void (f["package.json"] = f["package.json"]!.replace(/"mcpName": "[^"]+"/, '"mcpName": "io.github.other/x"'))));
     expect(failing(r)).toContain("registry-rules");

@@ -2,7 +2,7 @@ import { defineAction } from "@agent-native/core/action";
 import { resolveSecretDetailed } from "@agent-native/core/server";
 import { z } from "zod";
 
-import { disabledPlatforms } from "../server/lib/enabled.js";
+import { disabledPlatforms, isLive } from "../server/lib/enabled.js";
 import { requireOwner } from "../server/lib/forge.js";
 import { loadPlatforms } from "../server/lib/platforms.js";
 
@@ -16,6 +16,8 @@ export default defineAction({
     const owner = requireOwner(ctx);
     const off = await disabledPlatforms(owner);
     const { platforms, errors } = loadPlatforms();
+    const liveState = new Map<string, boolean>();
+    for (const p of platforms) if (p.publish.liveSupported) liveState.set(p.id, await isLive(owner, p.id));
     const status = new Map<string, boolean | null>();
     for (const c of platforms.flatMap((p) => p.credentials)) {
       const r = await resolveSecretDetailed(c.key);
@@ -24,6 +26,8 @@ export default defineAction({
     return {
       platforms: platforms.map((p) => ({
         enabled: !off.has(p.id),
+        liveSupported: p.publish.liveSupported,
+        live: p.publish.liveSupported ? liveState.get(p.id) ?? false : false,
         reports: p.reports.map((r) => ({ id: r.id, title: r.title, type: r.type, description: r.description ?? null, needsToken: Boolean(r.request?.auth), href: r.href ?? null, linkLabel: r.linkLabel ?? null })),
         credentials: p.credentials.map((c) => ({ key: c.key, label: c.label, docsUrl: c.docsUrl ?? null, connected: status.get(c.key) ?? null })),
         id: p.id,

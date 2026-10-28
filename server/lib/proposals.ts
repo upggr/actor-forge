@@ -66,6 +66,7 @@ export async function validateProposal(rawManifest: unknown, templateFiles: Reco
   if (m.kind !== "template") issues.push('kind must be "template" (the built-in kinds need code, so they cannot be proposed)');
   if (!m.template) issues.push("template block is missing");
   if (m.discover.seeds.length > 40) issues.push("at most 40 seeds");
+  if (m.publish.liveSupported) issues.push("publish.liveSupported must be false; only a developer can add a real upload adapter");
   if (m.publish.liveEnabled) issues.push("publish.liveEnabled must be false; live publishing cannot be switched on by a proposal");
 
   if (m.template) {

@@ -27,7 +27,7 @@ export const builds = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     status: text("status", {
-      enum: ["drafting", "awaiting_approval", "approved", "rejected", "published_dry_run"],
+      enum: ["drafting", "awaiting_approval", "approved", "rejected", "published_dry_run", "published"],
     })
       .notNull()
       .default("drafting"),
@@ -65,5 +65,6 @@ export const platformState = pgTable("forge_platform_state", {
   ownerEmail: text("owner_email").notNull(),
   platformId: text("platform_id").notNull(),
   enabled: text("enabled", { enum: ["on", "off"] }).notNull().default("on"),
+  live: text("live", { enum: ["on", "off"] }).notNull().default("off"),
   updatedAt: text("updated_at").notNull(),
 });

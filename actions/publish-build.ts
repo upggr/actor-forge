@@ -1,5 +1,5 @@
 import { defineAction, fail } from "@agent-native/core/action";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -7,21 +7,28 @@ import { promisify } from "node:util";
 import { z } from "zod";
 
 import { getDb, schema } from "../server/db/index.js";
+import { isLive } from "../server/lib/enabled.js";
 import { getBuildOr404, now, platformOr404, requireOwner } from "../server/lib/forge.js";
+import { publishLive } from "../server/lib/publish.js";
 import { buildDir, listFiles } from "../server/lib/vet.js";
 
 const run = promisify(execFile);
 
 export default defineAction({
   description:
-    "Publish an approved build as a DRY RUN. It really packages the project (npm pack --dry-run) and writes the listing, then records exactly which command a live publish would run. Nothing is sent to Apify, npm or the MCP registry.",
+    "Publish an approved build. Where the platform has a real upload adapter and the user has switched 'Publish for real' on (Apify), this uploads the actor to the user's Apify account as a PRIVATE actor and builds it there; it never makes anything public. Otherwise it is a dry run: it really packages the project and records the command a live publish would run, and sends nothing.",
   schema: z.object({ id: z.string().describe("Build id of an approved build") }),
   run: async ({ id }, ctx) => {
     const owner = requireOwner(ctx);
     const b = await getBuildOr404(id, owner);
-    if (b.status !== "approved")
+    if (!["approved", "published_dry_run", "published"].includes(b.status))
       fail("Only approved builds can be published. Request approval first.", { statusCode: 409, errorCode: "not_approved" });
     const platform = platformOr404(b.platform);
+    if (platform.publish.liveSupported && (await isLive(owner, platform.id))) {
+      const result = await publishLive(owner, b, platform);
+      return { id, ...result };
+    }
+    if (b.status === "published") fail("Already uploaded. Switch 'Publish for real' on to push an update.", { statusCode: 409, errorCode: "already_published" });
     const dir = buildDir(id);
 
     let pack: { name?: string; size?: number; unpackedSize?: number; files: string[] };
@@ -57,7 +64,7 @@ export default defineAction({
     const res = await getDb()
       .update(schema.builds)
       .set({ status: "published_dry_run", publishResult: JSON.stringify(result), updatedAt: now() })
-      .where(and(eq(schema.builds.id, id), eq(schema.builds.status, "approved")))
+      .where(and(eq(schema.builds.id, id), inArray(schema.builds.status, ["approved", "published_dry_run"])))
       .returning({ id: schema.builds.id });
     if (!res.length) fail("Build changed state; reload and try again.", { statusCode: 409, errorCode: "bad_state" });
     return { id, ...result };

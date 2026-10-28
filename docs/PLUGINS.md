@@ -75,7 +75,7 @@ Field notes:
 - `seeds` are the niches Scout checks. Choose distinctive names (a generic word such as "wave" matches unrelated packages and inflates demand).
 - `vet` is the list shown on the Plugins page. The checks that really run are in the table in step 4.
 - `credentials` are registered with the framework's secrets store. The user adds them under **Settings, API keys** using the same key name, and the Plugins page shows connected or not.
-- `publish.liveEnabled` stays `false`: publishing is a dry run (it packages for real and records the command a live publish would run).
+- `publish.liveEnabled` stays `false` and `publish.liveSupported` is `false` for any plugin you write or the agent proposes. Publishing is then a dry run (it packages for real and records the command a live publish would run). `liveSupported` is a code capability: it is `true` only where a developer has written a real upload adapter (today `server/lib/live/apify.ts`, used by the Apify plugin), and a user must then switch "Publish for real" on for that platform.
 
 ## 3. Add reports (optional, for the platform's panel)
 

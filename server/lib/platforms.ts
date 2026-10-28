@@ -95,6 +95,7 @@ const manifest = z.object({
     type: z.string(),
     dryRunCommand: z.string(),
     liveEnabled: z.boolean().default(false),
+    liveSupported: z.boolean().default(false).describe("True only where the app has a real upload adapter for this platform. Proposals cannot set it."),
     namespace: z.string().optional(),
   }),
   credentials: z.array(credential).default([]),

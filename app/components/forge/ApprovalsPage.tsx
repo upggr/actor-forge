@@ -1,6 +1,7 @@
 import { useActionQuery } from "@agent-native/core/client/hooks";
 import { useSetPageTitle } from "@agent-native/toolkit/app-shell";
 import { IconCircleCheck } from "@tabler/icons-react";
+import { useNavigate } from "react-router";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -8,6 +9,7 @@ import { BuildDetail } from "./BuildDetail";
 
 export default function ApprovalsPage() {
   useSetPageTitle("Approvals");
+  const navigate = useNavigate();
   const q = useActionQuery("list-builds", {}) as any;
   const queue: any[] = (q.data?.builds ?? []).filter((b: any) => b.status === "awaiting_approval");
 
@@ -25,7 +27,7 @@ export default function ApprovalsPage() {
         <div className="mx-auto flex max-w-2xl flex-col gap-4">
           {queue.map((b) => (
             <div key={b.id} className="rounded-lg border">
-              <BuildDetail id={b.id} />
+              <BuildDetail id={b.id} onApprovedLive={(id) => navigate(`/pipeline?build=${id}&upload=1`)} />
             </div>
           ))}
         </div>

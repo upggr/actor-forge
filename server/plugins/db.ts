@@ -66,6 +66,13 @@ CREATE INDEX IF NOT EXISTS forge_suggestions_owner_status ON forge_suggestions (
 );
 CREATE INDEX IF NOT EXISTS forge_platform_state_owner ON forge_platform_state (owner_email)`,
     },
+    {
+      version: 4,
+      name: "forge-live-publishing",
+      sql: `ALTER TABLE forge_platform_state ADD COLUMN IF NOT EXISTS live TEXT NOT NULL DEFAULT 'off';
+ALTER TABLE forge_builds DROP CONSTRAINT IF EXISTS forge_builds_status_check;
+ALTER TABLE forge_builds ADD CONSTRAINT forge_builds_status_check CHECK (status IN ('drafting', 'awaiting_approval', 'approved', 'rejected', 'published_dry_run', 'published'))`,
+    },
   ],
   { table: "forge_app_migrations" },
 );

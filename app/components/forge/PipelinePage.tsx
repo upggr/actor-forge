@@ -11,11 +11,11 @@ import { cn } from "@/lib/utils";
 import { BuildDetail } from "./BuildDetail";
 import { PLATFORM_LABEL, timeAgo, toastError, useRefreshActions, VerdictPill, WorkingBar } from "./shared";
 
-const COLUMNS: { status: string; label: string }[] = [
+const COLUMNS: { status: string | string[]; label: string }[] = [
   { status: "drafting", label: "Drafting" },
   { status: "awaiting_approval", label: "Awaiting approval" },
   { status: "approved", label: "Approved" },
-  { status: "published_dry_run", label: "Published" },
+  { status: ["published", "published_dry_run"], label: "Published" },
 ];
 
 export default function PipelinePage() {
@@ -29,7 +29,7 @@ export default function PipelinePage() {
   const keeper = useActionMutation("keeper-check", {
     onSuccess: (r: any) => {
       refresh();
-      toast.success(r.alerts.length ? `Keeper raised ${r.alerts.length} alert(s): ${r.alerts[0].detail}` : `Keeper checked ${r.checked} build(s), no alerts`);
+      toast.success(r.uploads?.length ? `Keeper uploaded ${r.uploads.length} approved build(s) to Apify` : r.alerts.length ? `Keeper raised ${r.alerts.length} alert(s): ${r.alerts[0].detail}` : `Keeper checked ${r.checked} build(s), no alerts`);
     },
     onError: (e) => toastError(e, "Keeper failed"),
   });
@@ -58,9 +58,9 @@ export default function PipelinePage() {
           ) : (
             <div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-3">
               {COLUMNS.map((col) => {
-                const items = builds.filter((b) => b.status === col.status);
+                const items = builds.filter((b) => [col.status].flat().includes(b.status));
                 return (
-                  <section key={col.status} aria-label={col.label}>
+                  <section key={String(col.status)} aria-label={col.label}>
                     <h2 className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       {col.label}
                       <span className="font-mono">{items.length}</span>
@@ -96,7 +96,7 @@ export default function PipelinePage() {
       </div>
       {selected ? (
         <aside className="max-h-[60%] w-full shrink-0 overflow-auto border-t bg-background lg:max-h-none lg:w-[26rem] lg:border-l lg:border-t-0" aria-label="Build details">
-          <BuildDetail key={selected} id={selected} onClose={() => setParams({})} />
+          <BuildDetail key={selected} id={selected} onClose={() => setParams({})} autoUpload={params.get("upload") === "1"} onUploadStarted={() => setParams({ build: selected }, { replace: true })} />
         </aside>
       ) : null}
     </div>

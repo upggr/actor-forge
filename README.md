@@ -19,7 +19,7 @@ Optional tokens (only for the Portfolio panels and, later, live publishing) are 
 ## Check
 
 ```bash
-pnpm test                # 57 unit tests: scoring, pricing, report engine, vetting, proposals
+pnpm test                # 68 unit tests: scoring, pricing, report engine, vetting, proposals, Apify upload
 pnpm typecheck
 pnpm agent-native:doctor
 pnpm build

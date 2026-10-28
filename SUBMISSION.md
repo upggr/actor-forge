@@ -9,6 +9,7 @@ An agent-native app that finds marketplace gaps, builds a project for one, vets 
 - **Build** creates a runnable starter project; the agent replaces it with a real implementation.
 - **Vet** runs real checks (syntax, the project's own unit tests, secret scan, platform rules). Nothing is scored by the model.
 - **Approve** is a human-only gate. The agent cannot approve; publishing is refused until a person does.
+- **Upload** (Apify): with the per-platform "Publish for real" switch on (user-only), approving a build uploads it to the user's Apify account as a **private** actor and builds it on Apify, then reports the result with a link. It is never made public automatically. Other platforms stay dry runs.
 - **Keeper** re-vets shipped builds, re-checks the market for new competitors, and reports unhealthy live actors.
 - **Portfolio**: one panel per platform. Reports (usage, limits, run totals, daily cost, recent runs) are defined in each platform's manifest, run read-only with the user's own token, and the token can only be sent to the host the manifest declares. A pricing check compares each Apify actor with real Store competitors, and the agent proposes feature ideas with evidence. Suggestions are accepted only by a person.
 - **Scheduled agent**: a daily Scout + Keeper run and a weekly portfolio review, created as framework automations (they fire on a deployed app, not on a local dev machine).
@@ -16,12 +17,13 @@ An agent-native app that finds marketplace gaps, builds a project for one, vets 
 
 **Agent-Native use.** Every capability is a `defineAction()` shared by the UI, the agent, HTTP and CLI. The approval action is hidden from the agent (`agentTool: false`). Tokens live in the shared secrets store.
 
-**Honest limits.** Publishing is a dry run (real packaging, no upload). Apify's public API has no revenue endpoint, so income is a link to the Console, not an estimate. Gap scores are evidence-based but are a signal, not a guarantee of demand.
+**Honest limits.** Real uploading exists for Apify only (private actors; making one public, listing it and pricing it are the user's decisions in the Console). npm, the MCP registry and Hugging Face stay dry runs: an npm publish is effectively permanent, and the MCP registry needs an interactive GitHub login. Apify's public API has no revenue endpoint, so income is a link to the Console, not an estimate. Gap scores are evidence-based but are a signal, not a guarantee of demand.
 
 ## Verified
-- 57 automated tests (scoring, pricing, report engine and its token-host safety rules, vetting of every platform's starter and of deliberately broken builds, proposal validation).
+- 68 automated tests (scoring, pricing, report engine and its token-host safety rules, vetting of every platform's starter and of deliberately broken builds, proposal validation).
 - Full flow exercised in a real browser (Scout, build, vet, approve, publish dry run, Keeper, Plugins, Portfolio).
 - The Portfolio panels and pricing check were run against a real Apify account (23 actors), read-only.
+- A real upload to Apify was run end to end: the agent-written Product Hunt actor was created as a private actor and built successfully on Apify. The first real build also failed on an input-schema rule our vetting missed (string fields need an `editor`); vetting now enforces it, and a failed build is reported with Apify's own log lines instead of being hidden.
 - The chat agent built a real MCP server end to end and proposed a new platform, which waited for approval.
 
 ## Run
