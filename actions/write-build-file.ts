@@ -10,7 +10,7 @@ import { listFiles, buildDir } from "../server/lib/vet.js";
 
 export default defineAction({
   description:
-    "Create or overwrite one file in a build that is still drafting. Editing a file clears the previous vetting report, so run vet-build again afterwards.",
+    "Create or overwrite ONE file in a build that is still drafting. Always pass all three arguments: buildId, path (for example nodes/Starter/helpers.js) and the full content. Editing a file clears the previous vetting report, so run vet-build again afterwards.",
   schema: z.object({
     buildId: z.string().describe("Build id"),
     path: z.string().min(1).max(200).describe("Build-relative path, e.g. src/parse.mjs"),

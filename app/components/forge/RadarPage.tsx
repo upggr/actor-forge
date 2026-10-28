@@ -123,15 +123,17 @@ export default function RadarPage() {
 
   const platforms = useActionQuery("list-platforms", {}) as any;
   const query = useActionQuery("list-opportunities", platform === "all" ? {} : { platform }) as any;
-  const opportunities: Opportunity[] = query.data?.opportunities ?? [];
+  const fetched: Opportunity[] = query.data?.opportunities ?? [];
+  const [progress, setProgress] = useState<null | { done: number; total: number; failed: number; per: Record<string, { name: string; done: number; total: number }> }>(null);
+  const running = useRef(false);
+  const scouting = progress !== null;
+  // While Scout runs, tiles stay where they appear (oldest first) so the grid does not shuffle; the ranked order returns when it finishes.
+  const opportunities = scouting ? [...fetched].sort((a, b) => a.updatedAt.localeCompare(b.updatedAt)) : fetched;
   const selected = opportunities.find((o) => o.id === selectedId) ?? null;
   const newest = opportunities.reduce((m, o) => (o.updatedAt > m ? o.updatedAt : m), "");
 
   // Scout runs one niche per request so the bar is real and tiles appear as each result lands.
   const scoutM = useActionMutation("scout-run");
-  const [progress, setProgress] = useState<null | { done: number; total: number; failed: number; per: Record<string, { name: string; done: number; total: number }> }>(null);
-  const running = useRef(false);
-  const scouting = progress !== null;
 
   const runScout = async () => {
     const list: any[] = (platforms.data?.platforms ?? []).filter((p: any) => p.enabled);

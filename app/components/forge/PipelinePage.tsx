@@ -56,7 +56,7 @@ export default function PipelinePage() {
               Nothing in the pipeline. Pick a gap on the Radar and press Build this.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-3">
               {COLUMNS.map((col) => {
                 const items = builds.filter((b) => b.status === col.status);
                 return (
