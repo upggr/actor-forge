@@ -1,0 +1,176 @@
+{
+  "id": "huggingface",
+  "name": "Hugging Face Spaces",
+  "blurb": "Gradio apps hosted free on Hugging Face. Publishing is a git push with a token, and the Space is live at once.",
+  "kind": "template",
+  "template": {
+    "dir": "huggingface-template",
+    "requiredFiles": [
+      "app.py",
+      "logic.py",
+      "requirements.txt",
+      "README.md"
+    ],
+    "test": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tests"
+    ],
+    "rules": [
+      {
+        "type": "file-regex",
+        "file": "README.md",
+        "pattern": "^sdk: gradio$",
+        "message": "README declares sdk: gradio"
+      },
+      {
+        "type": "file-regex",
+        "file": "README.md",
+        "pattern": "^app_file: app\\.py$",
+        "message": "README declares app_file: app.py"
+      },
+      {
+        "type": "file-regex",
+        "file": "requirements.txt",
+        "pattern": "\\S",
+        "message": "requirements.txt is not empty"
+      }
+    ]
+  },
+  "discover": {
+    "type": "hf-spaces",
+    "apiUrl": "https://huggingface.co/api",
+    "seeds": [
+      {
+        "topic": "Cookie banner checker",
+        "query": "cookie banner"
+      },
+      {
+        "topic": "Tax form helper",
+        "query": "tax form"
+      },
+      {
+        "topic": "Nutrition label reader",
+        "query": "nutrition label"
+      },
+      {
+        "topic": "Address parser",
+        "query": "address parser"
+      },
+      {
+        "topic": "Website accessibility check",
+        "query": "website accessibility"
+      },
+      {
+        "topic": "Email classifier",
+        "query": "email classifier"
+      },
+      {
+        "topic": "Log anomaly finder",
+        "query": "log anomaly"
+      },
+      {
+        "topic": "Subtitle translator",
+        "query": "subtitle translation"
+      }
+    ]
+  },
+  "vet": [
+    "structure",
+    "syntax",
+    "unit-tests",
+    "secrets",
+    "space-config"
+  ],
+  "publish": {
+    "type": "hf-space-push",
+    "dryRunCommand": "git push https://huggingface.co/spaces/<user>/<slug> main",
+    "liveEnabled": false
+  },
+  "credentials": [
+    {
+      "key": "HF_TOKEN",
+      "label": "Hugging Face access token",
+      "description": "Needed to push a built Space (live publishing is off until you connect it).",
+      "docsUrl": "https://huggingface.co/settings/tokens",
+      "host": "huggingface.co"
+    }
+  ],
+  "reports": [
+    {
+      "id": "my-spaces",
+      "title": "Your Spaces",
+      "type": "stats",
+      "request": {
+        "url": "https://huggingface.co/api/spaces?author={{me.name}}&limit=100",
+        "auth": {
+          "secret": "HF_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://huggingface.co/api/whoami-v2",
+          "auth": {
+            "secret": "HF_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "",
+      "stats": [
+        {
+          "label": "Spaces",
+          "op": "count",
+          "format": "number"
+        },
+        {
+          "label": "Total likes",
+          "op": "sum",
+          "path": "likes",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "id": "my-spaces-list",
+      "title": "Space list",
+      "type": "table",
+      "request": {
+        "url": "https://huggingface.co/api/spaces?author={{me.name}}&limit=100&sort=likes&direction=-1",
+        "auth": {
+          "secret": "HF_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://huggingface.co/api/whoami-v2",
+          "auth": {
+            "secret": "HF_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "",
+      "columns": [
+        {
+          "label": "Space",
+          "path": "id"
+        },
+        {
+          "label": "Likes",
+          "path": "likes",
+          "format": "number"
+        },
+        {
+          "label": "SDK",
+          "path": "sdk"
+        },
+        {
+          "label": "Updated",
+          "path": "lastModified",
+          "format": "date"
+        }
+      ],
+      "limit": 25
+    }
+  ]
+}

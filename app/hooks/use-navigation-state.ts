@@ -18,6 +18,8 @@ export interface NavigationState {
   path?: string;
   publicPath?: string;
   threadId?: string;
+  opportunityId?: string;
+  buildId?: string;
 }
 
 export function useNavigationState() {
@@ -64,7 +66,12 @@ function matchesPathPrefix(pathname: string, prefix: string): boolean {
 
 export function navigationStateForPath(pathname: string): NavigationState {
   const threadId = threadIdFromPath(pathname);
+  const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const opportunityId = query?.get("opportunity") ?? undefined;
+  const buildId = query?.get("build") ?? undefined;
   return {
+    ...(opportunityId ? { opportunityId } : {}),
+    ...(buildId ? { buildId } : {}),
     view: viewForPath(pathname),
     path: pathname,
     publicPath: appPathFromLocalRoute(pathname),
@@ -75,6 +82,11 @@ export function navigationStateForPath(pathname: string): NavigationState {
 function viewForPath(pathname: string): string {
   if (isChatPathname(pathname)) return "chat";
   if (pathname === HOME_PATH) return "home";
+  if (pathname.startsWith("/radar")) return "radar";
+  if (pathname.startsWith("/pipeline")) return "pipeline";
+  if (pathname.startsWith("/approvals")) return "approvals";
+  if (pathname.startsWith("/portfolio")) return "portfolio";
+  if (pathname.startsWith("/plugins")) return "plugins";
   if (pathname.startsWith("/database")) return "database";
   if (pathname.startsWith("/extensions")) return "extensions";
   if (pathname.startsWith("/observability")) return "observability";
@@ -93,6 +105,16 @@ function pathForView(view?: string): string {
       return NEW_CHAT_PATH;
     case "home":
       return HOME_PATH;
+    case "radar":
+      return "/radar";
+    case "pipeline":
+      return "/pipeline";
+    case "approvals":
+      return "/approvals";
+    case "portfolio":
+      return "/portfolio";
+    case "plugins":
+      return "/plugins";
     case "database":
       return "/database";
     case "extensions":

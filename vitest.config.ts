@@ -15,6 +15,9 @@ export default defineConfig({
       "**/.git/**",
       "**/dist/**",
       "**/.react-router/**",
+      // Starter templates and generated builds carry their own node:test files; they are vetted by the app, not run here.
+      "platforms/**",
+      "builds/**",
     ],
   },
 });

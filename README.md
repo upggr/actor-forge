@@ -1,33 +1,38 @@
-# Chat
+# Actor Forge
 
-The minimal agent-native starter app — a clean, ChatGPT-style shell with chat at
-the center, durable threads, standard app navigation, auth, live sync, and
-actions. Start here when you want a real browser app to build on without
-committing to a domain template.
+An agent-native app that finds gaps on marketplaces, builds a project for one, vets it with real checks, and hands it to a person for approval. Built for the Builder.io Agent-Native Hackathon.
 
-**Live app: [chat.agent-native.com](https://chat.agent-native.com?utm_source=github&utm_medium=referral&utm_content=chat-readme)**
+See [SUBMISSION.md](SUBMISSION.md) for what it does and the demo script, and [docs/PLUGINS.md](docs/PLUGINS.md) for adding a platform.
 
-Chat is the basic agent-native app starting point. It gives you the app-agent
-loop wired end to end and one example action, so you can add your own UI, data,
-and actions on top.
-
-## Features
-
-- ChatGPT-style shell with a threads list and durable chat history.
-- Auth, live sync, and application state wired out of the box.
-- The action surface the agent and UI share, plus one example action to copy.
-- A minimal, brandable base for any domain app.
-
-## Develop locally
-
-Scaffold your own copy and run it:
+## Run
 
 ```bash
-npx --yes @agent-native/core@latest create my-app --standalone --template chat
-cd my-app
-corepack enable
 pnpm install
-pnpm dev
+cp .env.example .env     # add an LLM key (OPENROUTER_API_KEY or another provider)
+pnpm dev                 # http://localhost:8080, then "Continue as local dev"
 ```
 
-Full docs: [agent-native.com/docs/template-chat](https://agent-native.com/docs/template-chat?utm_source=github&utm_medium=referral&utm_content=chat-readme).
+Needs Node 22 and pnpm. Local data lives in `data/` (PGlite). Generated projects are written to `builds/`.
+
+Optional tokens (only for the Portfolio panels and, later, live publishing) are added in the app under **Settings, API keys**: `APIFY_TOKEN`, `NPM_TOKEN`, `HF_TOKEN`.
+
+## Check
+
+```bash
+pnpm test                # 57 unit tests: scoring, pricing, report engine, vetting, proposals
+pnpm typecheck
+pnpm agent-native:doctor
+pnpm build
+```
+
+## Layout
+
+| Path | What |
+|---|---|
+| `actions/` | Every capability as a `defineAction()`, shared by the UI, the agent, HTTP and CLI |
+| `platforms/` | One JSON manifest per platform, plus a starter template folder |
+| `server/lib/` | Scout (discovery), vetting, report engine, pricing, proposals |
+| `app/components/forge/` | Radar, Pipeline, Approvals, Portfolio and Plugins screens |
+| `docs/PLUGINS.md` | How to write a platform plugin, by hand or by asking the agent |
+
+Human-only actions (`decide-build`, `decide-suggestion`, `decide-platform-proposal`) are hidden from the agent, so it cannot approve its own work.

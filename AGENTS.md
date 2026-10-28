@@ -31,3 +31,14 @@ Use `adding-a-feature` for functional parity and `frontend-design` for a user-fa
 Before building common workspace or agent UI, read `agent-native-toolkit`; for supported customization, read `customizing-agent-native`.
 
 - Guarded verification: run `pnpm agent-native:doctor`; fix findings before done.
+
+## Actor Forge
+
+Finds marketplace gaps (Apify, MCP, n8n, Hugging Face), builds a project for one, vets it with real checks, and routes it to a person for approval. Routes: `/radar`, `/pipeline` (`?build=`), `/approvals`, `/portfolio`, `/plugins`. Platforms are plugins: `platforms/<id>.json` + a template folder (`docs/PLUGINS.md`).
+
+- Flow: `scout-run` -> `list-opportunities` -> `start-build` -> `get-build` + `write-build-file` (replace the starter) -> `vet-build` -> `request-approval` -> a person approves in the UI -> `publish-build` (always a dry run).
+- Invariants: one build per opportunity; approval needs a pass or review verdict; you cannot approve (`decide-build`, `decide-suggestion`, `decide-platform-proposal` are human-only); editing a file clears the vet report.
+- Never claim a check passed unless `vet-build` returned it. Quote evidence from tools; never invent market data, endpoints or income (Apify's API has no revenue).
+- Portfolio: `run-report` runs manifest reports; Apify ones need `APIFY_TOKEN`. `pricing-check`, then `competitor-snapshot` + `add-suggestion` for features, cite real competitors.
+- Platforms: `set-platform-enabled` hides one reversibly. To add one: `get-platform-guide`, then `propose-platform`; it is live only after the user approves it on Plugins.
+- Navigation fields: `opportunityId`, `buildId`.

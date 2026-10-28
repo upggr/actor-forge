@@ -1,0 +1,171 @@
+{
+  "id": "mcp",
+  "name": "MCP Servers (npm + registry)",
+  "blurb": "Model Context Protocol servers published to npm and the official MCP registry.",
+  "kind": "mcp-server",
+  "discover": {
+    "type": "mcp-npm",
+    "npmSearchUrl": "https://registry.npmjs.org/-/v1/search",
+    "registryUrl": "https://registry.modelcontextprotocol.io/v0.1/servers",
+    "seeds": [
+      {
+        "topic": "Hotjar analytics",
+        "query": "hotjar"
+      },
+      {
+        "topic": "Mollie payments",
+        "query": "mollie"
+      },
+      {
+        "topic": "Klarna payments",
+        "query": "klarna"
+      },
+      {
+        "topic": "Yotpo reviews",
+        "query": "yotpo"
+      },
+      {
+        "topic": "Payoneer payouts",
+        "query": "payoneer"
+      },
+      {
+        "topic": "FullStory session replay",
+        "query": "fullstory"
+      },
+      {
+        "topic": "MailerLite email",
+        "query": "mailerlite"
+      },
+      {
+        "topic": "Bitly links",
+        "query": "bitly"
+      },
+      {
+        "topic": "Rocket.Chat",
+        "query": "rocket.chat"
+      },
+      {
+        "topic": "Gusto payroll",
+        "query": "gusto"
+      },
+      {
+        "topic": "Cal.com scheduling",
+        "query": "cal.com"
+      },
+      {
+        "topic": "Typeform forms",
+        "query": "typeform"
+      },
+      {
+        "topic": "Recharge subscriptions",
+        "query": "recharge"
+      },
+      {
+        "topic": "Podio workspaces",
+        "query": "podio"
+      }
+    ]
+  },
+  "vet": [
+    "structure",
+    "syntax",
+    "unit-tests",
+    "secrets",
+    "registry-rules"
+  ],
+  "publish": {
+    "type": "npm-then-registry",
+    "dryRunCommand": "npm publish --access public",
+    "liveEnabled": false,
+    "namespace": "io.github.upggr"
+  },
+  "credentials": [
+    {
+      "key": "NPM_TOKEN",
+      "label": "npm access token",
+      "description": "Needed to publish built MCP servers to npm (live publishing is off until you connect it).",
+      "docsUrl": "https://www.npmjs.com/settings/~/tokens",
+      "host": "registry.npmjs.org"
+    }
+  ],
+  "reports": [
+    {
+      "id": "my-packages",
+      "title": "Your published packages",
+      "type": "stats",
+      "request": {
+        "url": "https://registry.npmjs.org/-/v1/search?text=maintainer:{{me.username}}+keywords:mcp-server&size=100",
+        "auth": {
+          "secret": "NPM_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://registry.npmjs.org/-/whoami",
+          "auth": {
+            "secret": "NPM_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "objects",
+      "stats": [
+        {
+          "label": "Packages",
+          "op": "count",
+          "format": "number"
+        },
+        {
+          "label": "Downloads per week",
+          "op": "sum",
+          "path": "downloads.weekly",
+          "format": "number"
+        },
+        {
+          "label": "Downloads per month",
+          "op": "sum",
+          "path": "downloads.monthly",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "id": "my-packages-list",
+      "title": "Package list",
+      "type": "table",
+      "request": {
+        "url": "https://registry.npmjs.org/-/v1/search?text=maintainer:{{me.username}}+keywords:mcp-server&size=100",
+        "auth": {
+          "secret": "NPM_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://registry.npmjs.org/-/whoami",
+          "auth": {
+            "secret": "NPM_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "objects",
+      "columns": [
+        {
+          "label": "Package",
+          "path": "package.name"
+        },
+        {
+          "label": "Version",
+          "path": "package.version"
+        },
+        {
+          "label": "Weekly",
+          "path": "downloads.weekly",
+          "format": "number"
+        },
+        {
+          "label": "Published",
+          "path": "package.date",
+          "format": "date"
+        }
+      ],
+      "limit": 25
+    }
+  ]
+}

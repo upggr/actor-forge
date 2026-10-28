@@ -1,0 +1,201 @@
+{
+  "id": "n8n",
+  "name": "n8n Community Nodes",
+  "blurb": "Integration nodes for n8n workflows, published to npm and installable from the n8n editor.",
+  "kind": "template",
+  "template": {
+    "dir": "n8n-template",
+    "requiredFiles": [
+      "package.json",
+      "nodes/Starter/Starter.node.js",
+      "nodes/Starter/helpers.js",
+      "README.md"
+    ],
+    "rules": [
+      {
+        "type": "json-contains",
+        "file": "package.json",
+        "path": "keywords",
+        "value": "n8n-community-node-package",
+        "message": "package.json has the n8n-community-node-package keyword"
+      },
+      {
+        "type": "file-regex",
+        "file": "package.json",
+        "pattern": "\"nodes\"\\s*:\\s*\\[",
+        "message": "package.json lists nodes under the n8n block"
+      },
+      {
+        "type": "file-regex",
+        "file": "package.json",
+        "pattern": "\"name\"\\s*:\\s*\"n8n-nodes-",
+        "message": "package name starts with n8n-nodes-"
+      }
+    ]
+  },
+  "discover": {
+    "type": "npm-search",
+    "npmSearchUrl": "https://registry.npmjs.org/-/v1/search",
+    "marker": "n8n",
+    "seeds": [
+      {
+        "topic": "Hotjar",
+        "query": "hotjar"
+      },
+      {
+        "topic": "FullStory",
+        "query": "fullstory"
+      },
+      {
+        "topic": "Cal.com",
+        "query": "cal.com"
+      },
+      {
+        "topic": "Gusto payroll",
+        "query": "gusto"
+      },
+      {
+        "topic": "Recharge subscriptions",
+        "query": "recharge"
+      },
+      {
+        "topic": "Klarna payments",
+        "query": "klarna"
+      },
+      {
+        "topic": "Basecamp",
+        "query": "basecamp"
+      },
+      {
+        "topic": "Podio",
+        "query": "podio"
+      },
+      {
+        "topic": "Wrike",
+        "query": "wrike"
+      },
+      {
+        "topic": "Yotpo reviews",
+        "query": "yotpo"
+      },
+      {
+        "topic": "Payoneer",
+        "query": "payoneer"
+      },
+      {
+        "topic": "Mollie payments",
+        "query": "mollie"
+      },
+      {
+        "topic": "Lemon Squeezy",
+        "query": "lemon squeezy"
+      },
+      {
+        "topic": "Plausible analytics",
+        "query": "plausible"
+      }
+    ],
+    "builtinIndexUrl": "https://api.github.com/repos/n8n-io/n8n/contents/packages/nodes-base/nodes"
+  },
+  "vet": [
+    "structure",
+    "syntax",
+    "unit-tests",
+    "secrets",
+    "n8n-package-rules"
+  ],
+  "publish": {
+    "type": "npm",
+    "dryRunCommand": "npm publish --access public",
+    "liveEnabled": false
+  },
+  "credentials": [
+    {
+      "key": "NPM_TOKEN",
+      "label": "npm access token",
+      "description": "Needed to publish a built node package (live publishing is off until you connect it).",
+      "docsUrl": "https://www.npmjs.com/settings/~/tokens",
+      "host": "registry.npmjs.org"
+    }
+  ],
+  "reports": [
+    {
+      "id": "my-packages",
+      "title": "Your published packages",
+      "type": "stats",
+      "request": {
+        "url": "https://registry.npmjs.org/-/v1/search?text=maintainer:{{me.username}}+keywords:n8n-community-node-package&size=100",
+        "auth": {
+          "secret": "NPM_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://registry.npmjs.org/-/whoami",
+          "auth": {
+            "secret": "NPM_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "objects",
+      "stats": [
+        {
+          "label": "Packages",
+          "op": "count",
+          "format": "number"
+        },
+        {
+          "label": "Downloads per week",
+          "op": "sum",
+          "path": "downloads.weekly",
+          "format": "number"
+        },
+        {
+          "label": "Downloads per month",
+          "op": "sum",
+          "path": "downloads.monthly",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "id": "my-packages-list",
+      "title": "Package list",
+      "type": "table",
+      "request": {
+        "url": "https://registry.npmjs.org/-/v1/search?text=maintainer:{{me.username}}+keywords:n8n-community-node-package&size=100",
+        "auth": {
+          "secret": "NPM_TOKEN"
+        },
+        "prefetch": {
+          "url": "https://registry.npmjs.org/-/whoami",
+          "auth": {
+            "secret": "NPM_TOKEN"
+          },
+          "as": "me"
+        }
+      },
+      "rows": "objects",
+      "columns": [
+        {
+          "label": "Package",
+          "path": "package.name"
+        },
+        {
+          "label": "Version",
+          "path": "package.version"
+        },
+        {
+          "label": "Weekly",
+          "path": "downloads.weekly",
+          "format": "number"
+        },
+        {
+          "label": "Published",
+          "path": "package.date",
+          "format": "date"
+        }
+      ],
+      "limit": 25
+    }
+  ]
+}

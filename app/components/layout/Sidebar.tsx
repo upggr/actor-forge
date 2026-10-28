@@ -1,4 +1,5 @@
 import { appPath } from "@agent-native/core/client/api-path";
+import { useActionQuery } from "@agent-native/core/client/hooks";
 import { useT } from "@agent-native/core/client/i18n";
 import {
   navigateWithAgentChatViewTransition,
@@ -14,8 +15,13 @@ import { OrgSwitcher } from "@agent-native/toolkit/app/org";
 import { openCommandMenu } from "@agent-native/toolkit/app/shared";
 import { AgentNativeIcon } from "@agent-native/toolkit/app/shared/AgentNativeIcon";
 import {
+  IconBriefcase,
+  IconCircleCheck,
   IconEdit,
   IconHome,
+  IconLayoutKanban,
+  IconPlug,
+  IconRadar2,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconLoader2,
@@ -151,6 +157,54 @@ function HomeNavLink({ collapsed }: { collapsed: boolean }) {
   }
 
   return <div className="px-2">{link}</div>;
+}
+
+const FORGE_LINKS = [
+  { to: "/radar", label: "Radar", Icon: IconRadar2 },
+  { to: "/pipeline", label: "Pipeline", Icon: IconLayoutKanban },
+  { to: "/approvals", label: "Approvals", Icon: IconCircleCheck },
+  { to: "/portfolio", label: "Portfolio", Icon: IconBriefcase },
+  { to: "/plugins", label: "Plugins", Icon: IconPlug },
+] as const;
+
+function ForgeNavLinks({ collapsed }: { collapsed: boolean }) {
+  const location = useLocation();
+  const builds = useActionQuery("list-builds", {}) as any;
+  const waiting = (builds.data?.builds ?? []).filter((b: any) => b.status === "awaiting_approval").length;
+  return (
+    <>
+      {FORGE_LINKS.map(({ to, label, Icon }) => {
+        const active = location.pathname.startsWith(to);
+        const count = to === "/approvals" ? waiting : 0;
+        const link = (
+          <Link
+            to={to}
+            aria-current={active ? "page" : undefined}
+            aria-label={collapsed ? label : undefined}
+            className={cn(
+              "flex items-center text-sidebar-accent-foreground transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+              active && "bg-sidebar-accent",
+              collapsed ? "size-8 justify-center rounded-md" : "h-8 w-full gap-3 rounded-lg px-3 text-sm font-medium",
+            )}
+          >
+            <Icon className="size-4 shrink-0" strokeWidth={1.8} />
+            <span className={collapsed ? "sr-only" : "truncate"}>{label}</span>
+            {count > 0 && !collapsed ? (
+              <span className="ml-auto rounded-full bg-primary px-1.5 font-mono text-xs text-primary-foreground">{count}</span>
+            ) : null}
+          </Link>
+        );
+        return collapsed ? (
+          <Tooltip key={to}>
+            <TooltipTrigger asChild>{link}</TooltipTrigger>
+            <TooltipContent side="right">{label}</TooltipContent>
+          </Tooltip>
+        ) : (
+          <div key={to} className="px-2">{link}</div>
+        );
+      })}
+    </>
+  );
 }
 
 function ChatThreadsSection({ collapsed }: { collapsed: boolean }) {
@@ -408,6 +462,7 @@ export function Sidebar({
         )}
       >
         <HomeNavLink collapsed={collapsed} />
+        <ForgeNavLinks collapsed={collapsed} />
         <ChatThreadsSection collapsed={collapsed} />
       </nav>
 

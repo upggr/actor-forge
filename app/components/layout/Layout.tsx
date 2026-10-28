@@ -49,6 +49,7 @@ function routeOwnsToolbar(pathname: string): boolean {
     pathname === HOME_PATH ||
     isChatPathname(pathname) ||
     pathname === "/database" ||
+    ["/radar", "/pipeline", "/approvals", "/portfolio", "/plugins"].some((r) => pathname.startsWith(r)) ||
     pathname.startsWith("/extensions")
   );
 }

@@ -1,0 +1,272 @@
+{
+  "id": "apify",
+  "name": "Apify Store",
+  "blurb": "Scrapers and automations sold per result on the Apify Store.",
+  "kind": "apify-actor",
+  "discover": {
+    "type": "apify-store",
+    "apiUrl": "https://api.apify.com/v2/store",
+    "seeds": [
+      {
+        "topic": "Product Hunt launches",
+        "query": "product hunt",
+        "category": "SOCIAL_MEDIA"
+      },
+      {
+        "topic": "Deliveroo menus",
+        "query": "deliveroo",
+        "category": "ECOMMERCE"
+      },
+      {
+        "topic": "Wayfair products",
+        "query": "wayfair",
+        "category": "ECOMMERCE"
+      },
+      {
+        "topic": "Trustpilot reviews",
+        "query": "trustpilot",
+        "category": "SOCIAL_MEDIA"
+      },
+      {
+        "topic": "Glassdoor jobs and reviews",
+        "query": "glassdoor",
+        "category": "JOBS"
+      },
+      {
+        "topic": "Mercado Libre listings",
+        "query": "mercado libre",
+        "category": "ECOMMERCE"
+      },
+      {
+        "topic": "Temu products",
+        "query": "temu",
+        "category": "ECOMMERCE"
+      },
+      {
+        "topic": "Capterra software reviews",
+        "query": "capterra",
+        "category": "SOCIAL_MEDIA"
+      },
+      {
+        "topic": "Crunchbase companies",
+        "query": "crunchbase",
+        "category": "LEAD_GENERATION"
+      },
+      {
+        "topic": "Yelp businesses",
+        "query": "yelp",
+        "category": "TRAVEL"
+      }
+    ]
+  },
+  "vet": [
+    "structure",
+    "syntax",
+    "unit-tests",
+    "secrets",
+    "terms"
+  ],
+  "publish": {
+    "type": "apify-push",
+    "dryRunCommand": "apify push",
+    "liveEnabled": false
+  },
+  "pricing": {
+    "model": "pay-per-event",
+    "suggested": "$1.50 per 1,000 results"
+  },
+  "credentials": [
+    {
+      "key": "APIFY_TOKEN",
+      "label": "Apify API token",
+      "description": "Needed to push built actors to the Apify Store (live publishing is off until you connect it).",
+      "docsUrl": "https://console.apify.com/account/integrations",
+      "host": "api.apify.com"
+    }
+  ],
+  "reports": [
+    {
+      "id": "usage-cycle",
+      "title": "Account usage this billing cycle",
+      "type": "stats",
+      "request": {
+        "url": "https://api.apify.com/v2/users/me/usage/monthly",
+        "auth": {
+          "secret": "APIFY_TOKEN"
+        }
+      },
+      "stats": [
+        {
+          "label": "Usage so far",
+          "path": "data.totalUsageCreditsUsdAfterVolumeDiscount",
+          "format": "usd"
+        },
+        {
+          "label": "Cycle started",
+          "path": "data.usageCycle.startAt",
+          "format": "date"
+        },
+        {
+          "label": "Cycle ends",
+          "path": "data.usageCycle.endAt",
+          "format": "date"
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "title": "Plan limits",
+      "type": "stats",
+      "request": {
+        "url": "https://api.apify.com/v2/users/me/limits",
+        "auth": {
+          "secret": "APIFY_TOKEN"
+        }
+      },
+      "stats": [
+        {
+          "label": "Monthly usage",
+          "path": "data.current.monthlyUsageUsd",
+          "format": "usd"
+        },
+        {
+          "label": "Monthly limit",
+          "path": "data.limits.maxMonthlyUsageUsd",
+          "format": "usd"
+        },
+        {
+          "label": "Actors",
+          "path": "data.current.actorCount",
+          "format": "number"
+        },
+        {
+          "label": "Actor limit",
+          "path": "data.limits.maxActorCount",
+          "format": "number"
+        },
+        {
+          "label": "Running jobs now",
+          "path": "data.current.activeActorJobCount",
+          "format": "number"
+        },
+        {
+          "label": "Schedules",
+          "path": "data.current.scheduleCount",
+          "format": "number"
+        }
+      ]
+    },
+    {
+      "id": "runs-30d",
+      "title": "Runs started from this account, last 30 days",
+      "description": "Runs you started yourself, including tests and scheduled runs. Other people's runs of your public actors are not in this list; see each actor's users instead.",
+      "type": "stats",
+      "request": {
+        "url": "https://api.apify.com/v2/actor-runs?limit=1000&desc=true&startedAfter={{days30ago}}",
+        "auth": {
+          "secret": "APIFY_TOKEN"
+        }
+      },
+      "rows": "data.items",
+      "stats": [
+        {
+          "label": "Runs",
+          "op": "count",
+          "format": "number"
+        },
+        {
+          "label": "Succeeded",
+          "op": "count",
+          "where": {
+            "path": "status",
+            "equals": "SUCCEEDED"
+          },
+          "format": "number"
+        },
+        {
+          "label": "Failed",
+          "op": "count",
+          "where": {
+            "path": "status",
+            "equals": "FAILED"
+          },
+          "format": "number"
+        },
+        {
+          "label": "Timed out",
+          "op": "count",
+          "where": {
+            "path": "status",
+            "equals": "TIMED-OUT"
+          },
+          "format": "number"
+        },
+        {
+          "label": "Platform cost",
+          "op": "sum",
+          "path": "usageTotalUsd",
+          "format": "usd"
+        }
+      ]
+    },
+    {
+      "id": "daily-cost",
+      "title": "Daily platform cost",
+      "type": "bars",
+      "request": {
+        "url": "https://api.apify.com/v2/users/me/usage/monthly",
+        "auth": {
+          "secret": "APIFY_TOKEN"
+        }
+      },
+      "rows": "data.dailyServiceUsages",
+      "bars": {
+        "x": "date",
+        "y": "totalUsageCreditsUsd",
+        "format": "usd"
+      },
+      "limit": 31
+    },
+    {
+      "id": "recent-runs",
+      "title": "Recent runs",
+      "type": "table",
+      "request": {
+        "url": "https://api.apify.com/v2/actor-runs?limit=15&desc=true",
+        "auth": {
+          "secret": "APIFY_TOKEN"
+        }
+      },
+      "rows": "data.items",
+      "columns": [
+        {
+          "label": "Status",
+          "path": "status"
+        },
+        {
+          "label": "Started",
+          "path": "startedAt",
+          "format": "date"
+        },
+        {
+          "label": "Cost",
+          "path": "usageTotalUsd",
+          "format": "usd"
+        },
+        {
+          "label": "Actor id",
+          "path": "actId"
+        }
+      ],
+      "limit": 15
+    },
+    {
+      "id": "income",
+      "title": "Income and payouts",
+      "description": "Apify's public API does not expose creator revenue or payouts, so this app does not estimate them. They are in the Apify Console.",
+      "type": "link",
+      "href": "https://console.apify.com/billing",
+      "linkLabel": "Open Billing in the Apify Console"
+    }
+  ]
+}
