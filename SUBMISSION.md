@@ -32,6 +32,12 @@ pnpm dev               # http://localhost:8080 -> "Continue as local dev"
 ```
 Add `APIFY_TOKEN` / `NPM_TOKEN` under Settings -> API keys (needed only for live publishing, which is off).
 
+## Before recording
+1. `pnpm dev`, open http://localhost:8080, click Continue as local dev.
+2. Optional, for the Portfolio panel: Settings, API keys, add `APIFY_TOKEN`.
+3. Optional, scheduled agent: in the chat, ask the agent to create two automations: "daily-scout-and-keeper" (cron `0 8 * * *`: run scout-run, then keeper-check, report the top new gaps and any alert, never start builds) and "weekly-portfolio-review" (cron `0 9 * * 1`: run list-my-actors and pricing-check, then propose at most two evidence-based feature suggestions per actor, never change anything on Apify). Schedules fire on a deployed app, not on a local dev machine.
+4. Press Run Scout once so the Radar is full, then record.
+
 ## Demo script (about 2 minutes)
 1. Radar: press Run Scout; tiles light up from live data. Click a zero-supply niche (e.g. Mollie) and read the evidence.
 2. Build this: open Pipeline, watch the agent write real files in chat.
